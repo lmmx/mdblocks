@@ -1,9 +1,9 @@
 source bashrc_mdblock_functions.sh
 
 test_result_blocks=$(
-  for test_pyfile in test*.py
+  for test_pyfile in tests/test*.py
   do
-    echo "--> Testing $test_pyfile"
+    echo "\`--> Testing $test_pyfile\`"
     pybtickblock "$test_pyfile" --noclip
   done
 )
