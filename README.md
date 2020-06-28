@@ -72,12 +72,21 @@ categorised as `_functions_md` where 'md' means 'markdown').
 
 - `xclip` copies the result to the clipboard (result will not print to TTY if this operation fails)
   - To remove dependency, edit the last line of the functions to only print to TTY
+- `python3` (version ≥ 3.6, possibly ≥ 3.7)
+  - Uses f-strings, so 3.6 or later
+  - According to the `re` docs, character escaping behaviour changed in 3.7, so 3.6 may not handle
+    the escapes for multiline `python -c` command printing properly
+  - Only standard library imports are made, in 'anonymous functions' (i.e. Python calls with `-c`
+    command programs, so no need to install any packages, all imports are from standard library)
 - `bash`
   - Other shells should be compatible
 - `grep`
   - See [here](https://unix.stackexchange.com/a/430182/89254) for details of the
     requirements for the `grep` pipe buffer handling (done to avoid executing the
     command multiple times for each of `STDOUT` and `STDERR`)
+- `perl`
+  - Backslash escaping and lookbehind regex in the preprocessing so `pybtickblock` supports Python's
+    `-c` flag
 
 ## Examples
 
@@ -512,6 +521,8 @@ to mean narration/explanation doesn't hold when the reader is the 'user' (more l
 [B2C](https://en.wikipedia.org/wiki/B2C)).
 
 ## TODO
+
+- Test if `pybtickblock` escapes work in Python 3.6 and update dependencies
 
 The trickier parts left to do involve 'here documents' or file literals, i.e. strings sent
 over a pipe or otherwise entered as STDIN which get treated as a file
