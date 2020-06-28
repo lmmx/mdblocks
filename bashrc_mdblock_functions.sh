@@ -131,8 +131,9 @@ print('\n'.join(ll));
 
 function pybtickblock () {
   bt_anno="py"
+  fancy=true
   case $1 in
-    (--noclip|--plain) initial_mdblock_arg=true;;
+    (--noclip|--plain|--nofancy) initial_mdblock_arg=true;;
   esac
   start_n_flags=$# # Initial flag count
   flag_counter=0
@@ -141,6 +142,7 @@ function pybtickblock () {
     case $flag in
       (--noclip) noclip=true && shift;;
       (--plain)  bt_anno="" && shift;;
+      (--unfancy) fancy=false && shift;;
       # -c Indicates a Python command and terminates the options list
       (-c) pycommand=true && cmd_count=$flag_count;; # Penultimate arg
     esac
@@ -156,6 +158,9 @@ function pybtickblock () {
     # TODO add function code to also ignore escaped colons
     # Split `-c` arg on `;` ignoring escaped quoted `;` to get equivalent multiline program
     py_arg_multiline=$(PYTHON_MULTILINE_CMD_PRINTER "$cmd_arg")
+    if [[ $fancy = true ]]; then
+      py_arg_multiline_red=$(PYTHON_FANCY_MULTILINE_CMD_PRINTER "$cmd_arg")
+    fi
   else
     python_flag=''
     python_arg="$@"
@@ -166,6 +171,9 @@ function pybtickblock () {
   fi
   if [[ $pycommand = true ]]; then
     PROG_str=$(echo "$py_arg_multiline" | cat -)
+    if [[ $fancy = true ]]; then
+      PROG_str_red=$(echo "$py_arg_multiline_red" | cat -)
+    fi
   else
     PROG_str=$(cat "$1") # strip EOF whitespace
   fi
@@ -218,10 +226,42 @@ function pybtickblock () {
       echo "$bt"
     fi
   )
+  ### repeat for fancy TTY printer (using PROG_str_red
+  if [[ $pycommand = true ]] && [[ $fancy = true ]]; then
+    fancy_blockstring=$(
+      echo "$bt$bt_anno"
+      echo "$PROG_str_red" # Do NOT use `-e` in case of non-EOL "\n"
+      printf "$bt\n⇣\n$bt"
+      if [[ "$OUT_str" == "" ]]; then
+        if [[ "$ERR_str" == "" ]]; then # Neither STDOUT nor STDERR
+          echo -e "STDOUT\n$bt" # just empty STDOUT block
+        else # No STDOUT
+          echo "STDERR"
+          echo "$ERR_str" # just STDERR block
+          echo "$bt"
+        fi
+      elif [[ "$ERR_str" == "" ]]; then # No STDERR
+        echo "STDOUT"
+        echo "$OUT_str"
+        echo "$bt" # just STDOUT block
+      else # Both STDOUT and STDERR
+        echo "STDOUT"
+        echo "$OUT_str"
+        echo -e "$bt\n⇓\n$bt"STDERR # OUT-ERR separator (⇓)
+        echo "$ERR_str"
+        echo "$bt"
+      fi
+    )
+  fi
+  ### finished repeat for fancy TTY printer
   if [[ $noclip != true ]]; then
     echo "$blockstring" | xclip -sel clip
   fi
-  echo "$blockstring" 
+  if [[ $pycommand = true ]] && [[ $fancy = true ]]; then
+    echo "$fancy_blockstring"
+  else
+    echo "$blockstring"
+  fi
 }
 
 function shbtickblock () {

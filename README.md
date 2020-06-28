@@ -458,12 +458,18 @@ separate lines, or that program could get quite difficult to debug!
   expressions and bash-Python escape character twiddling).
 - The function `PYTHON_MULTILINE_CMD_PRINTER` handles this internally within the `pybtickblock`
   command (all caps indicates not intended for general usage).
-  - (TODO: complete development on the following:)
-  - As a bonus, there is a function `PYTHON_FANCY_MULTILINE_CMD_PRINTER` which can display
-    the string literals within the `-c` command argument in red text, to improve legibility.
-    This can be turned off by changing the `fancy_print` parameter to false in the function
-    or passing the `--unfancy` flag to `pybtickblock`. The ANSI code is not sent to the clipboard,
-    only to the TTY.
+
+As a bonus, the function `PYTHON_FANCY_MULTILINE_CMD_PRINTER` which can display
+the string literals within the `-c` command argument in red text, to improve legibility.
+
+This can be turned off by changing the `fancy_print` parameter to false in the function
+or passing the `--unfancy` flag to `pybtickblock`. The ANSI code is not sent to the clipboard,
+only to the TTY (hence it isn't shown in this markdown but trying a command like the previous one
+will show in colour).
+
+Here's a screenshot of how those previous 2 demos appear in the terminal:
+
+![](img/btickblock_fancy.png)
 
 ## Motivation
 
