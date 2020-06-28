@@ -381,7 +381,7 @@ pybtickblock -c "import sys; g = ' '.join(['GO']*5); race = f'{g} SO FAST NOW �
 print(race)"
 ```
 
-**WoOoOo!** Let's GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+**Woo!** Let's GoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOo (\*•̀ᴗ•́\*)و ̑̑
 
 - The command run here is `bash demo_derby.sh`
 
@@ -401,10 +401,26 @@ Yeehaw!
 
 The horse race took place down at the track (STDOUT), so now let's take the horse back to my place (STDERR)
 
+Here's a preview:
+
+- The command run here is `btickblock demo_derby_lose.sh --sh`
+
+```sh
+source bashrc_mdblock_functions.sh
+
+>&2 echo "💥 Oh no ! ! ! 💥"
+pybtickblock -c "h = 'horse'; e = 'ever'; hh, diz, x, ow, bigbag = ('🐎💨','😵','❌','🌵🤕🌵','💰');
+inwam = f'I n{e} win any money... {bigbag.join([x*3]*2)}'; stupid_h = f'Stupid {h} I just fell out
+of the P{h[1:-1]}che... {ow}'; ohno = [f'Racing {h}s at the derby {hh*3}', f'Why am I n{e} getting
+lucky? {diz}', *[inwam]*2, stupid_h]; raise ValueError('\n'.join(ohno))"
+```
+
+Hmm, I've got a funny feeling that this file `demo_derby_lose.sh` is going to raise an error...
+Let's try it and see.
+
 - The command run here is `bash demo_derby_lose.sh`
 
 ```py
-from sys import stderr as sigh
 h = 'horse'
 e = 'ever'
 hh, diz, x, ow, bigbag = ('🐎💨','😵','❌','🌵🤕🌵','💰')
