@@ -21,15 +21,154 @@ function btickblock () {
   echo "$blockstring" 
 }
 
+function PYTHON_SIMPLE_CMD_PRINTER () {
+  # Do not split command on colons inside [single-quoted] string literals
+  # but escape the exclamation mark or bash expands it to an `fc` command
+  colon_lookbehind_regex="(?<""!""\\)\'"
+  python -c """from re import split, compile
+amended_regex = r'$colon_lookbehind_regex'
+print(amended_regex)
+amended_regex
+regex = compile(pattern=amended_regex)
+rrace = r'$1'; print(rrace)
+qs = split(regex, rrace)
+print(qs)
+"""
+}
+
+function PYTHON_FANCY_MULTILINE_CMD_PRINTER () {
+  # Same function as PYTHON_MULTILINE_CMD_PRINTER but prints quoted string literals in red
+
+  # https://stackoverflow.com/a/26110311/2668831
+  #echo "$1" | perl -pe 's/(?<!\\)\x27/_/g' # this replaces only unescaped quotes with `_`
+  #echo "$1" | perl -pe 's/(?<!\\)\x27/\\\\\x27/g' # and this replaces them with `\'`
+  #echo "$1" | perl -pe 's/(?<!\\)\x27/\\\\\\\x27/g' # and this escapes the backslash `\\\'`
+  
+  # splitting regex compiles as `compile(r"(?<!\\)\x27")` and the raw string
+  # prints as `'(?<!\\\\)\\x27'` note that quote marks are not part of the string
+
+  # esc_seq --> "\\\\\\\x27" = "\\\\\\'" = "\\\\" + "\\'" = ("\"+\") + ("\"+"'")
+  # i.e. escape sequence for "\" + "'" i.e. escaped form of an escaped single quote
+
+  bash_dbl_bslash="\\\\" # only 2 when expanded in shell, then raw string makes 4 again
+  colon_lookbehind_regex="(?<""!""$bash_dbl_bslash)\'"
+  arg_esc="$(echo $1 | perl -pe 's/(?<!\\)\x27/\\\\\\\x27/g')"
+  python -c """\
+from re import compile, escape, split;
+esc_rrace = r'$arg_esc';
+qm = b'\x27'.decode();
+esc_seq = escape('$bash_dbl_bslash') + fr'\{qm}';
+rrace = esc_rrace.replace(esc_seq, qm);
+clr_regex_raw_str = r'$colon_lookbehind_regex';
+clr_regex = compile(clr_regex_raw_str);
+qs = split(clr_regex, rrace);
+ll = [''];
+for i, x in enumerate(qs):
+    if i % 2 == 0:
+        c = split(';', x);
+        for j, l in enumerate(c):
+            if j % 2 == 0:
+                ll[-1] += l;
+            else:
+                ll.append(l.lstrip());
+    else:
+        esc_quoted_text = f'\'{x}\''
+        red_esc_quoted_text = f'\x1b[0;31m{esc_quoted_text}\x1b[0m'
+        ll[-1] += red_esc_quoted_text;
+
+if ll[0] == '':
+    ll.pop(0);
+
+print('\n'.join(ll));
+"""
+}
+
+function PYTHON_MULTILINE_CMD_PRINTER () {
+  # Same function as PYTHON_MULTILINE_CMD_PRINTER but does not add ANSI colour codes
+
+  # https://stackoverflow.com/a/26110311/2668831
+  #echo "$1" | perl -pe 's/(?<!\\)\x27/_/g' # this replaces only unescaped quotes with `_`
+  #echo "$1" | perl -pe 's/(?<!\\)\x27/\\\\\x27/g' # and this replaces them with `\'`
+  #echo "$1" | perl -pe 's/(?<!\\)\x27/\\\\\\\x27/g' # and this escapes the backslash `\\\'`
+  
+  # splitting regex compiles as `compile(r"(?<!\\)\x27")` and the raw string
+  # prints as `'(?<!\\\\)\\x27'` note that quote marks are not part of the string
+
+  # esc_seq --> "\\\\\\\x27" = "\\\\\\'" = "\\\\" + "\\'" = ("\"+\") + ("\"+"'")
+  # i.e. escape sequence for "\" + "'" i.e. escaped form of an escaped single quote
+
+  bash_dbl_bslash="\\\\" # only 2 when expanded in shell, then raw string makes 4 again
+  colon_lookbehind_regex="(?<""!""$bash_dbl_bslash)\'"
+  arg_esc="$(echo $1 | perl -pe 's/(?<!\\)\x27/\\\\\\\x27/g')"
+  python -c """\
+from re import compile, escape, split;
+esc_rrace = r'$arg_esc';
+qm = b'\x27'.decode();
+esc_seq = escape('$bash_dbl_bslash') + fr'\{qm}';
+rrace = esc_rrace.replace(esc_seq, qm);
+clr_regex_raw_str = r'$colon_lookbehind_regex';
+clr_regex = compile(clr_regex_raw_str);
+qs = split(clr_regex, rrace);
+ll = [''];
+for i, x in enumerate(qs):
+    if i % 2 == 0:
+        c = split(';', x);
+        for j, l in enumerate(c):
+            if j % 2 == 0:
+                ll[-1] += l;
+            else:
+                ll.append(l.lstrip());
+    else:
+        esc_quoted_text = f'\'{x}\''
+        ll[-1] += esc_quoted_text;
+
+if ll[0] == '':
+    ll.pop(0);
+
+print('\n'.join(ll));
+"""
+}
+
 function pybtickblock () {
   bt_anno="py"
+  case $1 in
+    (--noclip|--plain) initial_mdblock_arg=true;;
+  esac
+  start_n_flags=$# # Initial flag count
+  flag_counter=0
   for flag in "$@"; do
+    ((flag_count++))
     case $flag in
-      (--noclip) noclip=true;;
-      (--plain)  bt_anno="";;
+      (--noclip) noclip=true && shift;;
+      (--plain)  bt_anno="" && shift;;
+      # -c Indicates a Python command and terminates the options list
+      (-c) pycommand=true && cmd_count=$flag_count;; # Penultimate arg
     esac
-  done
-  PROG_str=$(cat "$1") # strip EOF whitespace
+  done # There are now $# flags
+  if [[ $pycommand = true ]]; then
+    all_args=( "$@" )
+    # -c flag terminates Python's flag parser, and array index is 0-based so
+    # can just reuse the 1-based index from the loop above to get the command
+    cmd_arg="${all_args[cmd_count]}"
+    python_flag="-c"
+    # TODO: add the ability to use all flags with the `-c` flag
+    python_arg="$cmd_arg" # passed to `python -c` rather than the file
+    # TODO add function code to also ignore escaped colons
+    # Split `-c` arg on `;` ignoring escaped quoted `;` to get equivalent multiline program
+    py_arg_multiline=$(PYTHON_MULTILINE_CMD_PRINTER "$cmd_arg")
+  else
+    python_flag=''
+    python_arg="$@"
+  fi
+  if [[ $# -lt $start_n_flags ]] && [[ "$initial_mdblock_arg" != true ]]; then
+    echo "Hold up! Pass mdblock flags first so they can be shifted please" 1>&2
+    exit 2 # Exit early before invoking Python
+  fi
+  if [[ $pycommand = true ]]; then
+    PROG_str=$(echo "$py_arg_multiline" | cat -)
+  else
+    PROG_str=$(cat "$1") # strip EOF whitespace
+  fi
   # The following safely obtains STDOUT and STDERR in variables
   # with only a single execution of the command, see Q&A link:
   # https://unix.stackexchange.com/a/430182/89254
@@ -43,7 +182,7 @@ function pybtickblock () {
   done < <(
     {
       {
-        python "$1" |
+        python "$python_flag" "$python_arg" |
           grep --label=out --line-buffered -H '^' >&3
         echo >&3 "status:${PIPESTATUS[0]}"
       } 2>&1 |
@@ -51,9 +190,9 @@ function pybtickblock () {
     } 3>&1    
   )
   # The variable assignment introduces trailing whitespace
-  OUT_str="$(echo $out | cat -)" # strip EOF whitespace
-  ERR_str="$(echo $err | cat -)" # strip EOF whitespace
-  STATUS_str="$(echo $status | cat -)" # strip whitespace
+  OUT_str=$(echo "$out" | cat -) # strip EOF whitespace
+  ERR_str=$(echo "$err" | cat -) # strip EOF whitespace
+  STATUS_str=$(echo "$status" | cat -) # strip whitespace
   bt="\`\`\`"
   blockstring=$(
     echo "$bt$bt_anno"
@@ -86,13 +225,23 @@ function pybtickblock () {
 }
 
 function shbtickblock () {
+  alias defaultshell='$SHELL'
   bt_anno="sh"
+  case $1 in
+    (--noclip|--plain) initial_mdblock_arg=true;;
+  esac
+  start_n_flags=$# # Initial flag count
   for flag in "$@"; do
     case $flag in
-      (--noclip) noclip=true;;
-      (--plain)  bt_anno="";;
+      (--noclip) noclip=true && shift;;
+      (--plain)  bt_anno="" && shift;;
     esac
-  done
+  done # There are now $# flags
+  if [[ $# -lt $start_n_flags ]] && [[ "$initial_mdblock_arg" != true ]]; then
+    echo "Hold up! Pass mdblock flags first so they can be shifted please" 1>&2
+    echo "There are now $# flags, we started with $start_n_flags" 1>&2
+    exit 2 # Exit early before invoking Python
+  fi
   # ProcSub stops pipe hang if recurse to pybtickblock but still doesn't
   # successfully recurse to pybtickblock from a call to shbtickblock
   # so I have changed the proc. sub. lines below back (decremented 3)
@@ -113,7 +262,7 @@ function shbtickblock () {
   done < <(
     {
       {
-        sh "$1" |
+        defaultshell "$@" |
           grep --label=out --line-buffered -H '^' >&3
         echo >&3 "status:${PIPESTATUS[0]}"
       } 2>&1 |
@@ -126,9 +275,9 @@ function shbtickblock () {
     #} 6>&4
   )
   # The variable assignment introduces trailing whitespace
-  OUT_str="$(echo $out | cat -)" # strip EOF whitespace
-  ERR_str="$(echo $err | cat -)" # strip EOF whitespace
-  STATUS_str="$(echo $status | cat -)" # strip whitespace
+  OUT_str=$(echo "$out" | cat -) # strip EOF whitespace
+  ERR_str=$(echo "$err" | cat -) # strip EOF whitespace
+  STATUS_str=$(echo "$status" | cat -) # strip whitespace
   bt="\`\`\`"
   blockstring=$(
     echo "$bt$bt_anno"

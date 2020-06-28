@@ -233,6 +233,9 @@ The following script will demonstrate `pybtickblock`, and to display it in this 
 I used the `btickblock` command (introduced above).
 
 - The command run here is `btickblock demo_test.sh --sh`
+- Note that to get these functions work from within a script, you need to `source` them
+  from the functions file, `bashrc_mdblock_functions.sh`, or else from your `~/.bashrc`
+  if you installed them there as described in the [Installation](#Installation) section.
 
 ```sh
 source bashrc_mdblock_functions.sh
@@ -261,6 +264,8 @@ the output for all combinations of STDOUT and/or STDERR, in cases of failure/suc
 Again, I can retrieve the contents of this program ahead of running it by `btickblock`
 
 - The command run here is `btickblock demo_tests.sh --sh`
+- Again the program must `source` the function as it does not share the environment with
+  the shell in which `~/.bashrc` is sourced on startup.
 
 ```sh
 source bashrc_mdblock_functions.sh
@@ -349,6 +354,92 @@ print(1)
 
 ---
 
+So far so predictable. Another feature of Python is executing programs as 'file literals' in
+the argument following the `-c` ("command") flag, referred to as a
+"[here document](https://en.wikipedia.org/wiki/Here_document)".
+
+This means that if you can type a program out in a single string, you don't need to create files
+to run a program 'on the fly', they're treated as files that are just "here".
+
+This can be used in conjunction with the `pybtickblock` function (logging STDOUT and STDERR
+into backticked blocks as above), on the condition that you provide any flags to btickblock
+_before_ the flags to Python (so that the final flag will be the command to `-c`). This is
+a convention of Python's options parsing (see the manual) but makes sense in this use case too.
+
+Let's go down to the track (by which I mean let's show the result of a "derby" program that
+will race one very stupid horse):
+
+- The command run here is `btickblock demo_derby.sh --sh`
+- Again, the first line `source`s the functions (and if you run the rest of the file interactively
+  in the terminal after sourcing your `~/.bashrc` you don't need to do so)
+
+```sh
+source bashrc_mdblock_functions.sh
+
+echo "Giddy up 🤠"
+pybtickblock -c "import sys; g = ' '.join(['GO']*5); race = f'{g} SO FAST NOW 🌵🏇🌵\n'*2;
+print(race)"
+```
+
+**WoOoOo!** Let's GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+
+- The command run here is `bash demo_derby.sh`
+
+```py
+import sys
+g = ' '.join(['GO']*5)
+race = f'{g} SO FAST NOW 🌵🏇🌵\n'*2
+print(race)
+```
+⇣
+```STDOUT
+GO GO GO GO GO SO FAST NOW 🌵🏇🌵
+GO GO GO GO GO SO FAST NOW 🌵🏇🌵
+```
+
+Yeehaw!
+
+The horse race took place down at the track (STDOUT), so now let's take the horse back to my place (STDERR)
+
+- The command run here is `bash demo_derby_lose.sh`
+
+```py
+from sys import stderr as sigh
+h = 'horse'
+e = 'ever'
+hh, diz, x, ow, bigbag = ('🐎💨','😵','❌','🌵🤕🌵','💰')
+inwam = f'I n{e} win any money... {bigbag.join([x*3]*2)}'
+stupid_h = f'Stupid {h} I just fell out of the P{h[1:-1]}che... {ow}'
+ohno = [f'Racing {h}s at the derby {hh*3}', f'Why am I n{e} getting lucky? {diz}', *[inwam]*2,
+stupid_h]
+raise ValueError('\n'.join(ohno))
+```
+⇣
+```STDERR
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ValueError: Racing horses at the derby 🐎💨🐎💨🐎💨
+Why am I never getting lucky? 😵
+I never win any money... ❌❌❌💰❌❌❌
+I never win any money... ❌❌❌💰❌❌❌
+Stupid horse I just fell out of the Porsche... 🌵🤕🌵
+```
+
+Oh well... At least we have the command string passed to `python -c` printed out readably on
+separate lines, or that program could get quite difficult to debug!
+[🦎](https://genius.com/100-gecs-stupid-horse-lyrics)
+
+- Credit for that goes to Perl which made it possible to handle some tricky lookbehind regular
+  expressions and bash-Python escape character twiddling).
+- The function `PYTHON_MULTILINE_CMD_PRINTER` handles this internally within the `pybtickblock`
+  command (all caps indicates not intended for general usage).
+  - (TODO: complete development on the following:)
+  - As a bonus, there is a function `PYTHON_FANCY_MULTILINE_CMD_PRINTER` which can display
+    the string literals within the `-c` command argument in red text, to improve legibility.
+    This can be turned off by changing the `fancy_print` parameter to false in the function
+    or passing the `--unfancy` flag to `pybtickblock`. The ANSI code is not sent to the clipboard,
+    only to the TTY.
+
 ## Motivation
 
 The character map utility makes writing mathematical symbols (e.g. in the README for
@@ -406,6 +497,14 @@ to mean narration/explanation doesn't hold when the reader is the 'user' (more l
 
 ## TODO
 
+The trickier parts left to do involve 'here documents' or file literals, i.e. strings sent
+over a pipe or otherwise entered as STDIN which get treated as a file
+
 - Shell command execution, i.e. treat 'here documents'(?) (or however you call file literals
   piped over STDIN) the same as actual shell scripts
   - Is it possible to retrieve the full command from the history by `fc -e : 1`?
+- Improvements to `pybtickblock` when used with the `-c` flag to `python`
+  - Add the ability to use all flags with the `-c` flag to `pybtickblock`
+    - Currently, `-c` will 'consume' all other flags (it is possible to pass as `$python_arg`)
+  - Add function code to also ignore escaped colons (as for escaped single quotes)
+  - Print fancy text to TTY and non-fancy to clipboard
