@@ -68,6 +68,13 @@ Your `.bashrc` should be kept small (only the most important things) and
 complexity stored elsewhere (ideally in categorised files, e.g. this file is
 categorised as `_functions_md` where 'md' means 'markdown').
 
+The script `update_bashrc_funcfile.sh` will copy the file contents (but not change the
+access permissions) into such a file (`~/dotfiles/bashrc/bashrc_functions_md`).
+
+```sh
+cat bashrc_mdblock_functions.sh > ~/dotfiles/bashrc/bashrc_functions_md
+```
+
 ## Dependencies
 
 - `xclip` copies the result to the clipboard (result will not print to TTY if this operation fails)
