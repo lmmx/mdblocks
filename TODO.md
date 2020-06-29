@@ -1,7 +1,9 @@
 ## TODO
 
 - Move this TODO list to issue tracker?
+- Flags to suppress any of: file, STDOUT, STDERR
 - Add syntax highlighting with ANSI codes for TTY printing? Is there a Python lib?
+  - Could I simply get the `view` buffer (i.e. readonly-mode `vim`)?
 - Test if `pybtickblock` escapes work in Python 3.6 and update dependencies
 
 The trickier parts left to do involve 'here documents' or file literals, i.e. strings sent
