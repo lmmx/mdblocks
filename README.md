@@ -1,16 +1,30 @@
 # mdblocks
 
-Markdown code block generation convenience functions:
+Markdown code block generation convenience functions for quickly generating
+code examples in code documentation: READMEs, issue trackers, blogs, etc.
+This README contains examples of their usage and resulting markdown output.
 
 - `btickblock` for generic `STDOUT` blocks
 - `pybtickblock` for Python commands and their `STDOUT` and/or `STDERR` blocks
 - `shbtickblock` for shell commands and their `STDOUT` and/or `STDERR` blocks
 
-For quickly generating reproducible code examples in documentation (READMEs etc.).
-This README contains examples of their usage and resulting markdown output.
-
 All of the above commands **write to clipboard and print to STDOUT in one command**,
-and the latter two also **delimit STDOUT and/or STDERR** as appropriate to the input command.
+and the latter two also **delimit STDOUT and/or STDERR** (as determined by the result
+of the input command).
+
+Clipboarding can be turned off with the flag `--noclip` (e.g. for piping to `less`),
+and for convenience 3 aliases are defined for this:
+
+- `ncbtickblock` aliases `btickblock --noclip`
+- `ncpybtickblock` aliases `pybtickblock --noclip`
+- `ncshbtickblock` aliases `shbtickblock --noclip`
+
+On my installation of Linux, all of these commands can be tab-completed on the command
+line from only their 3 initial letters (e.g. `s` `h` `b` `<Tab>` ⇒ `shbtickblock`),
+making them greatly faster and simpler to use.
+
+The goal of these commands is to minime the disruption to your mental flow state while
+writing documentation, thinking less about the format as it is handled automagically.
 
 ## Markdown backtick blocks 
 

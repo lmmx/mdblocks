@@ -1,3 +1,8 @@
+# Convenience aliases for the non-clipboarding versions of the functions
+alias ncbtickblock="btickblock --noclip"
+alias ncpybtickblock="pybtickblock --noclip"
+alias ncshbtickblock="shbtickblock --noclip"
+
 function btickblock () {
   bt_anno="STDOUT" # don't autodetect file extension?
   for flag in "$@"; do
