@@ -190,7 +190,11 @@ function pybtickblock () {
   done < <(
     {
       {
-        python "$python_flag" "$python_arg" |
+        if [[ -z "$python_flag" ]]; then
+          python "$python_arg"
+        else
+          python "$python_flag" "$python_arg"
+        fi |
           grep --label=out --line-buffered -H '^' >&3
         echo >&3 "status:${PIPESTATUS[0]}"
       } 2>&1 |
