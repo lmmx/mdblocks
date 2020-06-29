@@ -167,7 +167,7 @@ function pybtickblock () {
   fi
   if [[ $# -lt $start_n_flags ]] && [[ "$initial_mdblock_arg" != true ]]; then
     echo "Hold up! Pass mdblock flags first so they can be shifted please" 1>&2
-    exit 2 # Exit early before invoking Python
+    return 2 # Exit early before invoking Python
   fi
   if [[ $pycommand = true ]]; then
     PROG_str=$(echo "$py_arg_multiline" | cat -)
@@ -284,7 +284,7 @@ function shbtickblock () {
   if [[ $# -lt $start_n_flags ]] && [[ "$initial_mdblock_arg" != true ]]; then
     echo "Hold up! Pass mdblock flags first so they can be shifted please" 1>&2
     echo "There are now $# flags, we started with $start_n_flags" 1>&2
-    exit 2 # Exit early before invoking Python
+    return 2 # Exit early before invoking Python
   fi
   # ProcSub stops pipe hang if recurse to pybtickblock but still doesn't
   # successfully recurse to pybtickblock from a call to shbtickblock
