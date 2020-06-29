@@ -208,7 +208,7 @@ hello...world
 ```
 
 At the time of writing, you can't execute a shell script passed in over the STDIN pipe, and results in
-an empty STDOUT block. (This feature is on the [TODO](#TODO) list).
+an empty STDOUT block. (This feature is on the [TODO](TODO) list).
 
 - E.g. `cat tests/test_out.sh | shbtickblock -`
 
@@ -546,19 +546,3 @@ are suitable for developer-to-developer (like
 [B2B](https://en.wikipedia.org/wiki/Business-to-business)) but the modified notion of 'documentation'
 to mean narration/explanation doesn't hold when the reader is the 'user' (more like
 [B2C](https://en.wikipedia.org/wiki/B2C)).
-
-## TODO
-
-- Test if `pybtickblock` escapes work in Python 3.6 and update dependencies
-
-The trickier parts left to do involve 'here documents' or file literals, i.e. strings sent
-over a pipe or otherwise entered as STDIN which get treated as a file
-
-- Shell command execution, i.e. treat 'here documents'(?) (or however you call file literals
-  piped over STDIN) the same as actual shell scripts
-  - Is it possible to retrieve the full command from the history by `fc -e : 1`?
-- Improvements to `pybtickblock` when used with the `-c` flag to `python`
-  - Add the ability to use all flags with the `-c` flag to `pybtickblock`
-    - Currently, `-c` will 'consume' all other flags (it is possible to pass as `$python_arg`)
-  - Add function code to also ignore escaped colons (as for escaped single quotes)
-  - Print fancy text to TTY and non-fancy to clipboard
