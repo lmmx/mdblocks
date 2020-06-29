@@ -1,7 +1,11 @@
 ## TODO
 
 - Move this TODO list to issue tracker?
-- Flags to suppress any of: file, STDOUT, STDERR
+- Flags to:
+  - Turn of `vimcat` syntax highlighting
+    - `--novimcat`
+  - Suppress any of: file, STDOUT, STDERR
+    - `--nofilecat`, `--nostdout`, `--nostderr`
 - Add syntax highlighting with ANSI codes for TTY printing? Is there a Python lib?
   - Could I simply get the `view` buffer (i.e. readonly-mode `vim`)?
 - Test if `pybtickblock` escapes work in Python 3.6 and update dependencies
